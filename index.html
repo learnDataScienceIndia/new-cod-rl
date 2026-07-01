@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destruction Certificate</title>
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --dark-green: #145a23;
+            --light-green: #208736;
+            --text-dark: #222222;
+            --image-border-width: 10px;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #e5e7eb;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Controls Area */
+        .controls {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 210mm;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background-color: var(--dark-green);
+        }
+
+        .btn-secondary {
+            background-color: #0c2b5c;
+        }
+
+        .btn-tertiary {
+            background-color: #e74c3c;
+        }
+
+        .tip-text {
+            font-size: 13px;
+            color: #555;
+            text-align: center;
+            margin: 0;
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Pages Container */
+        #pages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        /* Exact A4 Page Box */
+        .page {
+            background-color: white;
+            width: 210mm;
+            height: 297mm;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 8mm;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            page-break-after: always;
+            break-after: page;
+            overflow: hidden;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            opacity: 0.08;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Border */
+        .certificate-border {
+            border: 1px solid var(--dark-green);
+            box-shadow: inset 0 0 0 5px white, inset 0 0 0 7px rgba(20, 90, 35, 0.8);
+            flex-grow: 1;
+            box-sizing: border-box;
+            padding: 8mm 15mm 12mm 15mm;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+            background: transparent;
+        }
+
+        /* Alignment Guides */
+        .alignment-guide-v,
+        .alignment-guide-h {
+            position: absolute;
+            background: #3498db;
+            display: none;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .alignment-guide-v {
+            width: 1px;
+            top: 0;
+            bottom: 0;
+        }
+
+        .alignment-guide-h {
+            height: 1px;
+            left: 0;
+            right: 0;
+        }
+
+        .alignment-tooltip {
+            position: absolute;
+            background: #3498db;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 3px;
+            display: none;
+            z-index: 101;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Clean Professional Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 20px;
+            position: relative;
+            border-bottom: 2px solid rgba(20, 90, 35, 0.3);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, var(--dark-green), transparent, var(--dark-green));
+        }
+
+        /* Green gradient band below header */
+        .header-band {
+            background: linear-gradient(135deg, var(--dark-green) 0%, var(--light-green) 100%);
+            padding: 8px 12mm;
+            margin-left: -12mm;
+            margin-right: -12mm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .header-band-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .header-band-item i {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+        }
+
+        .header-band-divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .logo-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .logo-center img {
+            width: 100px;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        .company-name-tag {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--dark-green);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            justify-self: end;
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            font-size: 10px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .contact-row i {
+            color: var(--light-green);
+            width: 14px;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        /* Left placeholder so logo stays centered */
+        .header-left-spacer {
+            justify-self: start;
+        }
+
+        /* Date & Title Area */
+        .middle-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin-top: 10px;
+            margin-bottom: 25px;
+        }
+
+        /* Title Style - Centered with lines on both sides */
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 15px;
+            margin-top: 0;
+        }
+
+        .title-line {
+            flex-grow: 1;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(20, 90, 35, 0.5));
+            position: relative;
+        }
+
+        .title-line:last-child {
+            background: linear-gradient(270deg, transparent, rgba(20, 90, 35, 0.5));
+        }
+
+        .title-line::after {
+            content: '';
+            position: absolute;
+            top: -2.5px;
+            width: 7px;
+            height: 7px;
+            background: var(--dark-green);
+            border-radius: 50%;
+        }
+
+        .title-line:first-child::after {
+            right: 0;
+        }
+
+        .title-line:last-child::after {
+            left: 0;
+        }
+
+        .title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--dark-green);
+            margin: 0;
+            letter-spacing: 2.5px;
+            line-height: 1;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Unified Details Table */
+        .details-section {
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            table-layout: fixed;
+            font-size: 13px;
+            border: 1px solid rgba(20, 90, 35, 0.3);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .details-table th,
+        .details-table td {
+            padding: 9px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(20, 90, 35, 0.15);
+            border-right: 1px solid rgba(20, 90, 35, 0.15);
+            position: relative;
+        }
+
+        .details-table tr:last-child th,
+        .details-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .details-table th:nth-child(3) {
+            border-left: 2px solid rgba(20, 90, 35, 0.1);
+        }
+
+        .details-table td:last-child {
+            border-right: none;
+        }
+
+        .details-table th {
+            width: 18%;
+            font-weight: 700;
+            color: var(--dark-green);
+            background-color: rgba(20, 90, 35, 0.04);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .details-table td {
+            width: 32%;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .details-table tr:hover {
+            background-color: rgba(20, 90, 35, 0.015);
+        }
+
+        .add-field-row td {
+            background: none !important;
+            border-top: 1px dashed var(--dark-green) !important;
+            padding: 5px 10px;
+        }
+
+        /* Dynamic Add/Remove Fields */
+        .remove-row-btn {
+            position: absolute;
+            left: -22px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-weight: bold;
+        }
+
+        .details-table tr:hover .remove-row-btn {
+            opacity: 1;
+        }
+
+        .add-row-btn {
+            background-color: transparent;
+            color: var(--light-green);
+            border: 1px dashed var(--light-green);
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-row-btn:hover {
+            background-color: rgba(32, 135, 54, 0.1);
+        }
+
+        /* Paragraphs */
+        .content-text {
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--text-dark);
+            text-align: justify;
+            margin-bottom: 30px;
+        }
+
+        .content-text p {
+            margin: 0 0 12px 0;
+            font-weight: 500;
+        }
+
+        .highlight-red {
+            color: #d32f2f;
+            font-weight: 700;
+        }
+
+        .certify-statement {
+            text-align: justify;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-top: 20px !important;
+            font-size: 13px;
+        }
+
+        /* Image Title */
+        .image-area-title {
+            text-align: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 20px;
+            color: var(--dark-green);
+            margin-top: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .image-area-title::before,
+        .image-area-title::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background: rgba(20, 90, 35, 0.2);
+        }
+
+        /* Footer Accreditations - Pushed to Bottom of Page */
+        .footer-accreditations {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            background: white;
+            margin-top: auto;
+        }
+
+        .acc-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .acc-item img {
+            height: 38px;
+            object-fit: contain;
+        }
+
+        .acc-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .acc-text strong {
+            color: #0c2b5c;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .acc-text span {
+            color: #555;
+            font-size: 7px;
+            line-height: 1.2;
+        }
+
+        /* UI Helpers */
+        .page-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 6px;
+            z-index: 100;
+        }
+
+        .page-action-btn {
+            background: rgba(12, 43, 92, 0.9);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .page-action-btn.delete {
+            background: rgba(231, 76, 60, 0.9);
+        }
+
+        .page-action-btn:hover {
+            opacity: 1;
+        }
+
+        /* Page move buttons */
+        .page-move-btn {
+            background: rgba(52, 73, 94, 0.9) !important;
+            padding: 6px 9px !important;
+        }
+
+        .page-move-btn:hover {
+            background: rgba(52, 73, 94, 1) !important;
+        }
+
+        /* Editables */
+        [contenteditable="true"] {
+            outline: none;
+            border-bottom: none;
+            transition: background-color 0.2s;
+            border-radius: 2px;
+        }
+
+        [contenteditable="true"]:hover {
+            background-color: rgba(20, 90, 35, 0.04);
+        }
+
+        [contenteditable="true"]:focus {
+            background-color: rgba(20, 90, 35, 0.07);
+            box-shadow: inset 0 -2px 0 var(--dark-green);
+        }
+
+        /* --- DRAGGABLE & RESIZABLE IMAGES --- */
+        .draggable-image {
+            display: inline-block;
+            cursor: move;
+            border: 1px solid transparent;
+            position: absolute;
+            z-index: 10;
+        }
+
+        .draggable-image img {
+            border: var(--image-border-width) solid var(--dark-green);
+            box-sizing: border-box;
+        }
+
+        .draggable-image.active {
+            border: 1px dashed #0c2b5c;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .draggable-image .resizer-se,
+        .draggable-image .resizer-e,
+        .draggable-image .resizer-s {
+            width: 12px;
+            height: 12px;
+            background: #0B7C3B;
+            position: absolute;
+            display: none;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .draggable-image .resizer-se {
+            right: -6px;
+            bottom: -6px;
+            cursor: nwse-resize;
+        }
+
+        .draggable-image .resizer-e {
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: ew-resize;
+        }
+
+        .draggable-image .resizer-s {
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: ns-resize;
+        }
+
+        .draggable-image.active .resizer-se,
+        .draggable-image.active .resizer-e,
+        .draggable-image.active .resizer-s {
+            display: block;
+        }
+
+        .draggable-image .remove-btn {
+            width: 22px;
+            height: 22px;
+            background: #e74c3c;
+            color: white;
+            position: absolute;
+            top: -11px;
+            right: -11px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+            font-weight: bold;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .draggable-image.active .remove-btn {
+            display: block;
+        }
+
+        /* ===== IMAGE EVIDENCE PAGE ===== */
+        .evidence-border {
+            padding: 5mm 8mm 8mm 8mm !important;
+        }
+
+        body.landscape-mode .evidence-border {
+            padding: 4mm 8mm 5mm 8mm !important;
+        }
+
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 6px;
+            flex-grow: 1;
+            width: 100%;
+            min-height: 0;
+            background: rgba(255, 140, 0, 0.14);
+            /* light orange gap fill */
+            border-radius: 4px;
+            padding: 6px;
+            box-sizing: border-box;
+        }
+
+        .grid-cell {
+            position: relative;
+            border: 1px solid rgba(255, 140, 0, 0.25);
+            border-radius: 3px;
+            overflow: hidden;
+            background: #ffffff;
+            /* White background for the cell inner */
+            cursor: pointer;
+            user-select: none;
+            min-height: 0;
+        }
+
+        /* Canva-style draggable/resizable image wrapper */
+        .cell-img-wrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .cell-img-wrap:active {
+            cursor: grabbing;
+        }
+
+        .cell-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            /* stretch to fill wrap — user controls the size */
+            display: block;
+            pointer-events: none;
+            border: none !important;
+            box-shadow: none !important;
+            user-select: none;
+        }
+
+        /* Resize handles (visible on hover) */
+        .cell-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border: 2px solid #208736;
+            border-radius: 2px;
+            z-index: 30;
+            display: none;
+            box-sizing: border-box;
+        }
+
+        .grid-cell.has-image:hover .cell-handle {
+            display: block;
+        }
+
+        /* Corner handles */
+        .cell-handle.nw {
+            top: -5px;
+            left: -5px;
+            cursor: nwse-resize;
+        }
+
+        .cell-handle.ne {
+            top: -5px;
+            right: -5px;
+            cursor: nesw-resize;
+        }
+
+        .cell-handle.sw {
+            bottom: -5px;
+            left: -5px;
+            cursor: nesw-resize;
+        }
+
+        .cell-handle.se {
+            bottom: -5px;
+            right: -5px;
+            cursor: nwse-resize;
+        }
+
+        /* Edge handles (mid points) */
+        .cell-handle.n {
+            top: -5px;
+            left: calc(50% - 5px);
+            cursor: ns-resize;
+        }
+
+        .cell-handle.s {
+            bottom: -5px;
+            left: calc(50% - 5px);
+            cursor: ns-resize;
+        }
+
+        .cell-handle.e {
+            right: -5px;
+            top: calc(50% - 5px);
+            cursor: ew-resize;
+        }
+
+        .cell-handle.w {
+            left: -5px;
+            top: calc(50% - 5px);
+            cursor: ew-resize;
+        }
+
+        .cell-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: rgba(32, 135, 54, 0.4);
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            pointer-events: none;
+            padding: 6px;
+            line-height: 1.4;
+        }
+
+        .cell-placeholder i {
+            font-size: 22px;
+            opacity: 0.55;
+        }
+
+        .grid-cell.has-image .cell-placeholder {
+            display: none;
+        }
+
+        .cell-overlay {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            display: flex;
+            gap: 3px;
+            opacity: 0;
+            transition: opacity 0.18s;
+            z-index: 20;
+        }
+
+        .grid-cell:hover .cell-overlay {
+            opacity: 1;
+        }
+
+        .cell-overlay-btn {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 3px 6px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            backdrop-filter: blur(4px);
+            transition: background 0.15s;
+            line-height: 1;
+        }
+
+        .cell-overlay-btn:hover {
+            background: rgba(0, 0, 0, 0.85);
+        }
+
+        .cell-overlay-btn.del {
+            background: rgba(210, 40, 40, 0.85);
+        }
+
+        .cell-overlay-btn.del:hover {
+            background: rgba(210, 40, 40, 1);
+        }
+
+        .cell-zoom-hint {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.45);
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .grid-cell.has-image:hover .cell-zoom-hint {
+            opacity: 1;
+        }
+
+        /* Print: hide resize handles and overlays */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            .grid-cell:not(.has-image) {
+                display: none !important;
+            }
+
+            .cell-handle,
+            .cell-overlay,
+            .cell-zoom-hint {
+                display: none !important;
+            }
+
+            .simple-text-area td,
+            .simple-text-area th {
+                resize: none !important;
+                overflow: visible !important;
+                border: 1px solid #000 !important;
+            }
+        }
+
+        /* ===== BLANK PAGE (no heavy fixed margin) ===== */
+        .blank-content-wrap {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            padding: 6mm 8mm;
+            border: 1px solid rgba(20, 90, 35, 0.25);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* ===== SIMPLE TEXT AREA (Plain Text Page) ===== */
+        .simple-text-area {
+            flex-grow: 1;
+            width: 100%;
+            min-height: 50px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-dark);
+            outline: none;
+            position: relative;
+            overflow-y: auto;
+            padding: 4px 2px;
+            box-sizing: border-box;
+        }
+
+        .simple-text-area::before {
+            content: attr(data-placeholder);
+            color: rgba(120, 120, 120, 0.55);
+            font-style: italic;
+            font-size: 13px;
+            pointer-events: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .simple-text-area.has-content::before {
+            display: none;
+        }
+
+        .simple-text-area table {
+            border-collapse: collapse;
+            width: auto;
+            max-width: 100%;
+            margin: 6px 0;
+            font-size: 11px;
+            table-layout: auto;
+        }
+
+        .simple-text-area td,
+        .simple-text-area th {
+            border: 1px solid #ccc;
+            padding: 3px 7px;
+            min-width: 30px;
+            vertical-align: top;
+            word-break: break-word;
+        }
+
+        .simple-text-area img {
+            max-width: 100%;
+            display: block;
+            margin: 6px 0;
+        }
+
+        /* Landscape Mode overrides */
+        body.landscape-mode .page {
+            width: 297mm;
+            height: 210mm;
+            padding: 8mm 12mm;
+        }
+
+        body.landscape-mode .certificate-border {
+            padding: 5mm 25mm 5mm 25mm;
+        }
+
+        body.landscape-mode .header {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+        }
+
+        body.landscape-mode .contact-info div {
+            margin-bottom: 2px !important;
+        }
+
+        body.landscape-mode .middle-header {
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        body.landscape-mode .title {
+            font-size: 20px;
+        }
+
+        body.landscape-mode .details-table th,
+        body.landscape-mode .details-table td {
+            padding: 4px 12px;
+            font-size: 11px;
+        }
+
+        body.landscape-mode .content-text p {
+            margin: 0 0 5px 0;
+            font-size: 11px;
+        }
+
+        body.landscape-mode .certify-statement {
+            margin-top: 10px !important;
+            font-size: 11px;
+        }
+
+        body.landscape-mode .watermark {
+            width: 40%;
+        }
+
+        body.landscape-mode .footer-accreditations {
+            margin-top: 5px;
+            transform: scale(0.85);
+            transform-origin: bottom center;
+        }
+
+        /* Print Settings */
+        @media print {
+            @page {
+                margin: 0;
+                size: A4 portrait;
+            }
+
+            body.landscape-mode @page {
+                size: A4 landscape;
+            }
+
+            body {
+                background-color: white;
+                padding: 0;
+                margin: 0;
+            }
+
+            .controls,
+            .page-actions {
+                display: none !important;
+            }
+
+            #pages-container {
+                gap: 0;
+            }
+
+            .page {
+                box-shadow: none;
+                margin: 0;
+            }
+
+            [contenteditable="true"] {
+                border-bottom: none !important;
+                box-shadow: none !important;
+                background-color: transparent !important;
+                outline: none !important;
+            }
+
+            .alignment-guide-v,
+            .alignment-guide-h,
+            .alignment-tooltip {
+                display: none !important;
+            }
+
+            .draggable-image {
+                border: none !important;
+                background: transparent !important;
+            }
+
+            .resizer-se,
+            .resizer-e,
+            .resizer-s,
+            .draggable-image .remove-btn {
+                display: none !important;
+            }
+
+            .remove-row-btn,
+            .add-row-btn {
+                display: none !important;
+            }
+
+            /* Evidence grid print styles */
+            .cell-overlay,
+            .cell-placeholder,
+            .cell-zoom-hint {
+                display: none !important;
+            }
+
+            .evidence-grid {
+                flex-grow: 1;
+            }
+
+            .grid-cell {
+                border: 1px solid #DDEFD9 !important;
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="controls">
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="fa-solid fa-file-pdf"></i> Download PDF
+            </button>
+            <button class="btn btn-secondary" onclick="addTextPage()">
+                <i class="fa-solid fa-file-lines"></i> Add Text Page
+            </button>
+            <button class="btn btn-secondary" style="background-color: #16a085;" onclick="addEvidencePage()">
+                <i class="fa-solid fa-images"></i> Add Evidence Page
+            </button>
+            <button class="btn btn-primary" style="background-color: #27ae60;" onclick="saveProject()">
+                <i class="fa-solid fa-save"></i> Save Project
+            </button>
+            <button class="btn btn-primary" style="background-color: #8e44ad;"
+                onclick="document.getElementById('projectUpload').click()">
+                <i class="fa-solid fa-upload"></i> Load Project
+            </button>
+            <select id="orientationSelect" class="btn"
+                style="background-color: #34495e; color: white; border: none; font-weight: 600; padding: 10px 15px; border-radius: 5px;"
+                onchange="changeOrientation()">
+                <option value="portrait">Portrait (A4)</option>
+                <option value="landscape">Landscape (A4)</option>
+            </select>
+
+            <div
+                style="display: flex; align-items: center; gap: 10px; background: white; padding: 5px 15px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <label for="imageBorderSlider"
+                    style="font-size: 14px; font-weight: 600; color: var(--dark-green);">Image Border:</label>
+                <input type="range" id="imageBorderSlider" min="0" max="50" value="10"
+                    oninput="updateImageBorder(this.value)">
+                <span id="borderWidthDisplay" style="font-size: 14px; font-weight: 600;">10px</span>
+            </div>
+
+            <input type="file" id="imageUpload" accept="image/*" style="display: none;"
+                onchange="handleImageUpload(this)">
+            <input type="file" id="projectUpload" accept=".json" style="display: none;" onchange="loadProject(this)">
+        </div>
+        <p class="tip-text">
+            <i class="fa-solid fa-circle-info" style="color:#0B7C3B;"></i> <b>Pro Tip:</b> Use <b>Add Text Page</b> for
+            plain text, or <b>Add Evidence Page</b> for the 3×3 image grid. Click ↑↓ to reorder pages. Drag to
+            resize/move images!
+        </p>
+    </div>
+
+    <div id="pages-container">
+
+        <!-- PAGE 1: Certificate -->
+        <div class="page" id="page-1">
+            <img src="https://github.com/learnDataScienceIndia/signature/blob/0fa070974f7c06bd9b8e544b431c8d56c19c57af/t%20logo.png?raw=true"
+                class="watermark" alt="">
+
+            <!-- Page 1 action buttons -->
+            <div class="page-actions">
+                <button class="page-action-btn page-move-btn" onclick="movePage(this.closest('.page'), 'up')"
+                    title="Move Up">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+                <button class="page-action-btn page-move-btn" onclick="movePage(this.closest('.page'), 'down')"
+                    title="Move Down">
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <button class="page-action-btn" onclick="setActivePageAndUpload(this)">
+                    <i class="fa-solid fa-image"></i> Add Image
+                </button>
+            </div>
+
+            <div class="certificate-border">
+
+                <!-- Clean Professional Header: Logo Left, Contact Right -->
+                <div class="header">
+                    <!-- Left: Logo -->
+                    <div style="display: flex; align-items: center;">
+                        <img src="https://github.com/learnDataScienceIndia/signature/blob/0fa070974f7c06bd9b8e544b431c8d56c19c57af/t%20logo.png?raw=true"
+                            alt="Reloop Recycling"
+                            style="width: 120px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+                    </div>
+
+                    <!-- Right: Company Name & Contact Info -->
+                    <div class="contact-info" style="align-items: flex-start;">
+                        <div contenteditable="true"
+                            style="font-size: 14px; font-family: 'Oswald', sans-serif; font-weight: 800; color: var(--dark-green); letter-spacing: 0.5px; line-height: 1.1; margin-bottom: 2px;">
+                            RELOOP RECYCLING FZE</div>
+
+                        <div class="contact-row">
+                            <i class="fa-solid fa-phone"></i>
+                            <span contenteditable="true">+971 04-332-6011</span>
+                        </div>
+                        <div class="contact-row">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span contenteditable="true">RA08 TC05 JAFZA, Dubai, UAE</span>
+                        </div>
+                        <div class="contact-row">
+                            <i class="fa-solid fa-globe"></i>
+                            <span contenteditable="true">www.reloopglobal.com</span>
+                        </div>
+                        <div class="contact-row">
+                            <i class="fa-solid fa-envelope"></i>
+                            <span contenteditable="true">info@reloopglobal.com</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Title -->
+                <div class="middle-header">
+                    <div class="title-wrapper">
+                        <div class="title-line"></div>
+                        <h1 class="title" contenteditable="true">DESTRUCTION CERTIFICATE</h1>
+                        <div class="title-line"></div>
+                    </div>
+                </div>
+
+                <!-- Details Grid - Single Unified Table -->
+                <div class="details-section">
+                    <table class="details-table" id="details-main-table">
+                        <tbody>
+                            <tr>
+                                <th contenteditable="true">
+                                    <div class="remove-row-btn" onclick="this.closest('tr').remove()">×</div>Company
+                                    Name:
+                                </th>
+                                <td contenteditable="true" class="divider-left">NTS AMEGA GLOBAL</td>
+                                <th contenteditable="true">Waste Description:</th>
+                                <td contenteditable="true"></td>
+                            </tr>
+                            <tr>
+                                <th contenteditable="true">
+                                    <div class="remove-row-btn" onclick="this.closest('tr').remove()">×</div>Date
+                                    Received:
+                                </th>
+                                <td contenteditable="true" class="divider-left">27 April 2026</td>
+                                <th contenteditable="true">Weight:</th>
+                                <td contenteditable="true">102.5 kgs</td>
+                            </tr>
+                            <tr>
+                                <th contenteditable="true">
+                                    <div class="remove-row-btn" onclick="this.closest('tr').remove()">×</div>Job
+                                    Completed On:
+                                </th>
+                                <td contenteditable="true" class="divider-left">30 April 2026</td>
+                                <th contenteditable="true">Total Received:</th>
+                                <td contenteditable="true">Lot</td>
+                            </tr>
+                            <tr>
+                                <th contenteditable="true">
+                                    <div class="remove-row-btn" onclick="this.closest('tr').remove()">×</div>Certificate
+                                    No:
+                                </th>
+                                <td contenteditable="true" class="divider-left">RRF-004/Apr/2026</td>
+                                <th contenteditable="true">Remarks:</th>
+                                <td contenteditable="true">100% Recycled and 0 landfill</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="add-field-row">
+                                <td colspan="4">
+                                    <button class="add-row-btn" onclick="addField()">+ Add Row</button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Paragraphs -->
+                <div class="content-text">
+                    <p contenteditable="true">
+                        These items were received by Reloop Recycling. We apply a <span
+                            class="highlight-red">manual</span> dismantling process at JAFZA site in order to assure the
+                        maximum volume of secondary raw materials. These raw materials are recovered while minimizing
+                        negative effects on the environment. Every effort has been made to ensure the recycling of these
+                        materials has resulted in a minimum carbon footprint.
+                    </p>
+                    <p contenteditable="true">
+                        Our processes strictly adhere to international standards established by the United Nations
+                        Environment Program and the WEEE (Directive 2002/95/EC). Our work falls under Directive
+                        2002/96/EC, which is promoting the collecting and recycling of electrical and electronic
+                        equipment. The factories we work with all fall under these guidelines.
+                    </p>
+                    <p class="certify-statement" contenteditable="true">
+                        Reloop Recycling certifies that the recycling of these materials has not caused harm to the
+                        health or the environment, either within or outside the United Arab Emirates.
+                    </p>
+                </div>
+
+
+
+                <!-- Footer Accreditations - Pushed to Bottom of Page -->
+                <div class="footer-accreditations" id="base-footer">
+                    <div class="acc-item">
+                        <img src="https://github.com/learnDataScienceIndia/signature/blob/main/WhatsApp%20Image%202026-04-10%20at%2017.43.12.jpeg?raw=true"
+                            alt="ISO 9001">
+                        <div class="acc-text">
+                            <strong contenteditable="true">ISO 9001:2015</strong>
+                            <span contenteditable="true">Quality Management</span>
+                        </div>
+                    </div>
+
+                    <div class="acc-item">
+                        <img src="https://github.com/learnDataScienceIndia/signature/blob/main/WhatsApp%20Image%202026-04-10%20at%2017.43.43.jpeg?raw=true"
+                            alt="ISO 45001">
+                        <div class="acc-text">
+                            <strong contenteditable="true">ISO 45001:2018</strong>
+                            <span contenteditable="true">Occupational Health<br>&amp; Safety Management</span>
+                        </div>
+                    </div>
+
+                    <div class="acc-item">
+                        <img src="https://github.com/learnDataScienceIndia/signature/blob/main/WhatsApp%20Image%202026-04-10%20at%2017.43.54.jpeg?raw=true"
+                            alt="ISO 27001">
+                        <div class="acc-text">
+                            <strong contenteditable="true">ISO 27001:2022</strong>
+                            <span contenteditable="true">Information Security<br>Management</span>
+                        </div>
+                    </div>
+
+                    <div class="acc-item">
+                        <img src="https://github.com/learnDataScienceIndia/signature/blob/main/WhatsApp%20Image%202026-04-10%20at%2017.43.24.jpeg?raw=true"
+                            alt="ISO 14001">
+                        <div class="acc-text" style="color:var(--light-green)">
+                            <strong contenteditable="true" style="color:var(--light-green)">ISO 14001:2015</strong>
+                            <span contenteditable="true">Environmental<br>Management</span>
+                        </div>
+                    </div>
+
+                    <div class="acc-item">
+                        <img src="https://github.com/learnDataScienceIndia/signature/blob/main/WhatsApp%20Image%202026-04-10%20at%2017.46.49.jpeg?raw=true"
+                            alt="Accreditations" style="height: 38px;">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // =====================================================
+        // CANVA-STYLE CELL IMAGE DRAG + RESIZE
+        // Each .cell-img-wrap handles its own drag/resize
+        // via initCellWrap(). No global pan state needed.
+        // =====================================================
+
+        /**
+         * Attach Canva-style drag-to-move and corner/edge drag-to-resize
+         * to a .cell-img-wrap element inside a .grid-cell.
+         * Uses position (top/left/width/height) — no CSS transforms.
+         * @param {HTMLElement} cell - The parent .grid-cell.
+         * @param {HTMLElement} wrap - The .cell-img-wrap inside the cell.
+         */
+        function initCellWrap(cell, wrap) {
+            if (wrap._wrapInitialized) return;
+            wrap._wrapInitialized = true;
+
+            let startX, startY, startL, startT, startW, startH, action;
+
+            function onMove(e) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const minSize = 20;
+
+                if (action === 'move') {
+                    wrap.style.left = (startL + dx) + 'px';
+                    wrap.style.top = (startT + dy) + 'px';
+                } else {
+                    let nl = startL, nt = startT, nw = startW, nh = startH;
+                    // East (right edge)
+                    if (action === 'e' || action === 'ne' || action === 'se') {
+                        nw = Math.max(minSize, startW + dx);
+                    }
+                    // West (left edge)
+                    if (action === 'w' || action === 'nw' || action === 'sw') {
+                        nw = Math.max(minSize, startW - dx);
+                        nl = startL + (startW - nw);
+                    }
+                    // South (bottom edge)
+                    if (action === 's' || action === 'sw' || action === 'se') {
+                        nh = Math.max(minSize, startH + dy);
+                    }
+                    // North (top edge)
+                    if (action === 'n' || action === 'nw' || action === 'ne') {
+                        nh = Math.max(minSize, startH - dy);
+                        nt = startT + (startH - nh);
+                    }
+                    wrap.style.left = nl + 'px';
+                    wrap.style.top = nt + 'px';
+                    wrap.style.width = nw + 'px';
+                    wrap.style.height = nh + 'px';
+                }
+            }
+
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                if (action === 'move') wrap.style.cursor = 'grab';
+                action = null;
+            }
+
+            function startAction(e, type) {
+                e.preventDefault();
+                e.stopPropagation();
+                action = type;
+                startX = e.clientX;
+                startY = e.clientY;
+                startL = parseInt(wrap.style.left) || 0;
+                startT = parseInt(wrap.style.top) || 0;
+                startW = wrap.offsetWidth;
+                startH = wrap.offsetHeight;
+                if (type === 'move') wrap.style.cursor = 'grabbing';
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            }
+
+            // Body drag = move
+            wrap.addEventListener('mousedown', function (e) {
+                if (e.target.classList.contains('cell-handle')) return;
+                startAction(e, 'move');
+            });
+
+            // Corner/edge handle drag = resize
+            wrap.querySelectorAll('.cell-handle').forEach(function (h) {
+                const dir = Array.from(h.classList).find(c => c !== 'cell-handle');
+                h.addEventListener('mousedown', function (e) { startAction(e, dir); });
+            });
+        }
+
+        // =====================================================
+        // UTILITY FUNCTIONS
+        // =====================================================
+
+        /** Get the inner HTML of the base footer element for cloning into new pages. */
+        function getFooterHTML() {
+            const baseFooter = document.getElementById('base-footer');
+            return baseFooter ? baseFooter.innerHTML : '';
+        }
+
+        /** Get or create the alignment guide elements inside a certificate-border. */
+        function getOrCreateGuides(borderContainer) {
+            let guideV = borderContainer.querySelector('.alignment-guide-v');
+            if (!guideV) {
+                guideV = document.createElement('div');
+                guideV.className = 'alignment-guide-v';
+                borderContainer.appendChild(guideV);
+            }
+            let guideH = borderContainer.querySelector('.alignment-guide-h');
+            if (!guideH) {
+                guideH = document.createElement('div');
+                guideH.className = 'alignment-guide-h';
+                borderContainer.appendChild(guideH);
+            }
+            let tooltip = borderContainer.querySelector('.alignment-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.className = 'alignment-tooltip';
+                borderContainer.appendChild(tooltip);
+            }
+            return { guideV, guideH, tooltip };
+        }
+
+        // =====================================================
+        // PAGE MANAGEMENT
+        // =====================================================
+
+        /**
+         * Add a simple text page with a contenteditable area for plain text only.
+         */
+        function addTextPage() {
+            const container = document.getElementById('pages-container');
+            const footerHTML = getFooterHTML();
+
+            const newPage = document.createElement('div');
+            newPage.className = 'page';
+            newPage.innerHTML = `
+                <img src="https://github.com/learnDataScienceIndia/signature/blob/0fa070974f7c06bd9b8e544b431c8d56c19c57af/t%20logo.png?raw=true" class="watermark" alt="">
+                <div class="page-actions">
+                    <button class="page-action-btn page-move-btn" onclick="movePage(this.closest('.page'), 'up')" title="Move Up">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button class="page-action-btn page-move-btn" onclick="movePage(this.closest('.page'), 'down')" title="Move Down">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <button class="page-action-btn delete" onclick="this.closest('.page').remove()">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+                <div class="blank-content-wrap">
+                    <div class="simple-text-area" contenteditable="true"
+                         data-placeholder="Click here to start typing, or paste any format (Ctrl+V)..."
+                         spellcheck="false"></div>
+                    <div class="footer-accreditations" style="margin-top: auto;">
+                        ${footerHTML}
+                    </div>
+                </div>
+            `;
+            container.appendChild(newPage);
+
+            const textArea = newPage.querySelector('.simple-text-area');
+            initTextArea(textArea);
+
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        /**
+         * Add an Image Evidence Page with a professional 3×3 grid.
+         * Page title: DESTRUCTION EVIDENCE, with footer.
+         */
+        function addEvidencePage() {
+            const container = document.getElementById('pages-container');
+            const footerHTML = getFooterHTML();
+
+            const newPage = document.createElement('div');
+            newPage.className = 'page';
+            newPage.innerHTML = `
+                <img src="https://github.com/learnDataScienceIndia/signature/blob/0fa070974f7c06bd9b8e544b431c8d56c19c57af/t%20logo.png?raw=true" class="watermark" alt="">
+                <div class="page-actions">
+                    <button class="page-action-btn page-move-btn" onclick="movePage(this.closest('.page'), 'up')" title="Move Up">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button class="page-action-btn page-move-btn" onclick="movePage(this.closest('.page'), 'down')" title="Move Down">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <button class="page-action-btn delete" onclick="this.closest('.page').remove()">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+                <div class="certificate-border evidence-border">
+                    <div class="image-area-title" contenteditable="true" style="margin-bottom: 8px;">DESTRUCTION EVIDENCE</div>
+                    <div class="evidence-grid"></div>
+                    <div class="footer-accreditations" style="margin-top: 8px;">
+                        ${footerHTML}
+                    </div>
+                </div>
+            `;
+            container.appendChild(newPage);
+
+            // Build the 3×3 grid
+            const gridEl = newPage.querySelector('.evidence-grid');
+            createImageGrid(gridEl);
+
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        /**
+         * Populate a grid element with 9 image cells (3 columns × 3 rows).
+         * @param {HTMLElement} gridEl - The .evidence-grid container element.
+         */
+        function createImageGrid(gridEl) {
+            gridEl.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                gridEl.appendChild(createImageCell(i));
+            }
+        }
+
+        /**
+         * Create a single image cell with full interaction support:
+         * click to upload, double-click to replace, scroll to zoom,
+         * drag to pan, paste image, delete button.
+         * @param {number} index - Cell index (0–8).
+         */
+        function createImageCell(index) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.cellIndex = index;
+
+            // Placeholder (shown when no image)
+            const placeholder = document.createElement('div');
+            placeholder.className = 'cell-placeholder';
+            placeholder.innerHTML = `<i class="fa-solid fa-image"></i><span>Click or paste<br>to add image</span>`;
+            cell.appendChild(placeholder);
+
+            // Hover overlay: Replace + Delete (only when has-image)
+            const overlay = document.createElement('div');
+            overlay.className = 'cell-overlay';
+            overlay.innerHTML = `
+                <button class="cell-overlay-btn" onclick="replaceCellImage(this)" title="Replace">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+                <button class="cell-overlay-btn del" onclick="clearCell(this)" title="Remove">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>`;
+            cell.appendChild(overlay);
+
+            // Hint label
+            const hint = document.createElement('div');
+            hint.className = 'cell-zoom-hint';
+            hint.textContent = 'Drag to move · Drag corners/edges to resize';
+            cell.appendChild(hint);
+
+            // Hidden file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.style.display = 'none';
+            fileInput.addEventListener('change', function () {
+                if (fileInput.files && fileInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) { setCellImage(cell, e.target.result); };
+                    reader.readAsDataURL(fileInput.files[0]);
+                }
+                fileInput.value = '';
+            });
+            cell.appendChild(fileInput);
+
+            initGridCell(cell);
+            return cell;
+        }
+
+        /**
+         * Attach all interaction event handlers to a grid cell.
+         * Uses a flag to prevent double-initialization.
+         * @param {HTMLElement} cell - The .grid-cell element.
+         */
+        function initGridCell(cell) {
+            if (cell._gridInitialized) return;
+            cell._gridInitialized = true;
+            cell.setAttribute('tabindex', '0');
+
+            // Click on empty cell → open file picker
+            cell.addEventListener('click', function (e) {
+                if (e.target.closest('.cell-overlay')) return;
+                if (e.target.closest('.cell-img-wrap')) return; // image present
+                if (!cell.classList.contains('has-image')) {
+                    const fi = cell.querySelector('input[type="file"]');
+                    if (fi) fi.click();
+                }
+            });
+
+            // Double-click → replace image (open picker)
+            cell.addEventListener('dblclick', function (e) {
+                if (e.target.closest('.cell-overlay')) return;
+                const fi = cell.querySelector('input[type="file"]');
+                if (fi) fi.click();
+            });
+
+            // Paste image into focused cell
+            cell.addEventListener('paste', function (e) {
+                const items = e.clipboardData ? e.clipboardData.items : [];
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        e.preventDefault();
+                        const blob = items[i].getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = function (ev) { setCellImage(cell, ev.target.result); };
+                        reader.readAsDataURL(blob);
+                        return;
+                    }
+                }
+            });
+        }
+
+        /**
+         * Set an image source in a grid cell and update its state.
+         * @param {HTMLElement} cell - Target grid cell.
+         * @param {string} src - Image data URL.
+         */
+        /**
+         * Set an image in a grid cell.
+         * Creates or updates a .cell-img-wrap with Canva-style handles.
+         */
+        function setCellImage(cell, src) {
+            // Remove any old img-wrap
+            let wrap = cell.querySelector('.cell-img-wrap');
+            if (wrap) wrap.remove();
+
+            // Build new wrap
+            wrap = document.createElement('div');
+            wrap.className = 'cell-img-wrap';
+            // Start at full cell size
+            wrap.style.cssText = 'left:0;top:0;width:100%;height:100%;';
+
+            // Image
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = '';
+            wrap.appendChild(img);
+
+            // 8 resize handles: 4 corners + 4 edges
+            ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach(function (dir) {
+                const h = document.createElement('div');
+                h.className = 'cell-handle ' + dir;
+                wrap.appendChild(h);
+            });
+
+            // Insert before overlay so overlay stays on top
+            const overlay = cell.querySelector('.cell-overlay');
+            cell.insertBefore(wrap, overlay);
+
+            cell.classList.add('has-image');
+            initCellWrap(cell, wrap);
+        }
+
+        /**
+         * Clear the image from a grid cell.
+         */
+        function clearCell(btn) {
+            const cell = btn.closest('.grid-cell');
+            if (!cell) return;
+            const wrap = cell.querySelector('.cell-img-wrap');
+            if (wrap) wrap.remove();
+            cell.classList.remove('has-image');
+            cell.style.cursor = 'pointer';
+        }
+
+        /**
+         * Trigger the file picker to replace the image in a grid cell.
+         * @param {HTMLButtonElement} btn - The replace button inside the cell overlay.
+         */
+        function replaceCellImage(btn) {
+            const cell = btn.closest('.grid-cell');
+            if (!cell) return;
+            const fi = cell.querySelector('input[type="file"]');
+            if (fi) fi.click();
+        }
+
+        // =====================================================
+        // SIMPLE TEXT AREA (PLAIN TEXT PAGES)
+        // =====================================================
+
+        /**
+         * Initialize a text area to accept rich text (tables/images) pasting.
+         * @param {HTMLElement} area - The .simple-text-area element.
+         */
+        function initTextArea(area) {
+            area.addEventListener('paste', function (e) {
+                handleRichPaste(e, area);
+            });
+            area.addEventListener('input', function () {
+                const isEmpty = !area.innerHTML.trim() || area.innerHTML.trim() === '<br>';
+                area.classList.toggle('has-content', !isEmpty);
+            });
+        }
+
+        /**
+         * Handle paste events in text areas.
+         * Priority: image → HTML (Excel/Word/Sheets) → plain text (browser default).
+         * @param {ClipboardEvent} e
+         * @param {HTMLElement} container - The contenteditable container.
+         */
+        function handleRichPaste(e, container) {
+            const cd = e.clipboardData;
+            if (!cd) return;
+            const types = cd.types ? Array.from(cd.types) : [];
+
+            // 1. Prioritize HTML. If the clipboard has HTML (like from Excel or Google Docs),
+            // let the browser handle it natively. This prevents Excel tables from pasting as images
+            // and perfectly preserves all formatting.
+            if (types.indexOf('text/html') !== -1) {
+                return; // Native browser handling does exactly what Google Docs does
+            }
+
+            // 2. If it's ONLY an image (like a screenshot), handle the image paste
+            for (let i = 0; i < cd.items.length; i++) {
+                if (cd.items[i].type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    const blob = cd.items[i].getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function (ev) {
+                        const imgEl = document.createElement('img');
+                        imgEl.src = ev.target.result;
+                        imgEl.style.cssText = 'max-width:100%;display:block;margin:8px 0;';
+                        imgEl.contentEditable = 'false';
+                        insertAtCursor(container, imgEl);
+                        container.classList.add('has-content');
+                    };
+                    reader.readAsDataURL(blob);
+                    return;
+                }
+            }
+
+            // 3. Plain text falls through to native browser handling
+        }
+
+        /**
+         * Insert a DOM node at the current cursor position in a contenteditable.
+         * Falls back to appending if no selection exists inside the container.
+         * @param {HTMLElement} container - Contenteditable container.
+         * @param {Node} node - DOM node to insert.
+         */
+        function insertAtCursor(container, node) {
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                if (container.contains(range.commonAncestorContainer)) {
+                    range.deleteContents();
+                    range.insertNode(node);
+                    range.collapse(false);
+                    return;
+                }
+            }
+            container.appendChild(node);
+        }
+
+        // =====================================================
+        // PAGE REORDERING
+        // =====================================================
+
+        /**
+         * Move a page up or down in the pages container.
+         * @param {HTMLElement} pageEl - The .page element to move.
+         * @param {'up'|'down'} direction - Direction to move.
+         */
+        function movePage(pageEl, direction) {
+            const container = document.getElementById('pages-container');
+            if (!pageEl || !container) return;
+            if (direction === 'up') {
+                const prev = pageEl.previousElementSibling;
+                if (prev) container.insertBefore(pageEl, prev);
+            } else {
+                const next = pageEl.nextElementSibling;
+                if (next) container.insertBefore(next, pageEl);
+            }
+        }
+
+        // =====================================================
+        // ADD FIELD LOGIC (single unified details table)
+        // =====================================================
+        function addField() {
+            const tbody = document.querySelector('#details-main-table tbody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <th contenteditable="true"><div class="remove-row-btn" onclick="this.closest('tr').remove()" title="Remove row">×</div>Label:</th>
+                <td contenteditable="true" class="divider-left">Value</td>
+                <th contenteditable="true">Label:</th>
+                <td contenteditable="true">Value</td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        // =====================================================
+        // DRAGGABLE IMAGE UPLOAD
+        // =====================================================
+        let currentTargetPage = null;
+        let zIndexCounter = 10;
+
+        function setActivePageAndUpload(btn) {
+            currentTargetPage = btn.closest('.page');
+            document.getElementById('imageUpload').click();
+        }
+
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) { addImageToPage(e.target.result); };
+                reader.readAsDataURL(input.files[0]);
+            }
+            input.value = '';
+        }
+
+        /**
+         * Global paste handler — routes to the appropriate handler based on context:
+         * - Grid cells: handled by their own cell paste listener
+         * - Rich content areas: handled by initRichArea paste listener
+         * - Other contenteditable: browser default (text paste)
+         * - Elsewhere: add pasted image as a draggable image
+         */
+        document.addEventListener('paste', function (e) {
+            // Let grid cells handle their own paste
+            if (e.target.closest && e.target.closest('.grid-cell')) return;
+            // Let rich content areas handle their own paste
+            if (e.target.closest && e.target.closest('.rich-content-area')) return;
+            // Let native contenteditable fields handle text paste
+            if (document.activeElement && document.activeElement.isContentEditable) return;
+
+            // Fallback: paste image as draggable
+            if (e.clipboardData) {
+                const items = e.clipboardData.items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        e.preventDefault();
+                        const blob = items[i].getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = function (ev) { addImageToPage(ev.target.result); };
+                        reader.readAsDataURL(blob);
+                        return;
+                    }
+                }
+            }
+        });
+
+        function addImageToPage(imgSrc) {
+            let targetPage = currentTargetPage;
+            if (!targetPage) {
+                const pages = document.querySelectorAll('.page');
+                targetPage = pages[pages.length - 1];
+            }
+
+            const borderContainer = targetPage.querySelector('.certificate-border');
+
+            const container = document.createElement('div');
+            container.className = 'draggable-image active';
+            container.style.top = '150px';
+            container.style.left = '50px';
+            container.style.zIndex = zIndexCounter++;
+
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.style.width = '250px';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.pointerEvents = 'none';
+
+            const resizerSE = document.createElement('div');
+            resizerSE.className = 'resizer-se';
+            const resizerE = document.createElement('div');
+            resizerE.className = 'resizer-e';
+            const resizerS = document.createElement('div');
+            resizerS.className = 'resizer-s';
+
+            const removeBtn = document.createElement('div');
+            removeBtn.className = 'remove-btn';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.onclick = function (e) {
+                e.stopPropagation();
+                container.remove();
+            };
+
+            container.appendChild(img);
+            container.appendChild(resizerSE);
+            container.appendChild(resizerE);
+            container.appendChild(resizerS);
+            container.appendChild(removeBtn);
+            borderContainer.appendChild(container);
+
+            makeDraggable(container, borderContainer);
+            makeResizable(container, img, resizerSE, resizerE, resizerS);
+
+            // Deselect others
+            document.querySelectorAll('.draggable-image').forEach(el => {
+                if (el !== container) el.classList.remove('active');
+            });
+
+            currentTargetPage = null;
+        }
+
+        // Click outside to deselect draggable images
+        document.addEventListener('mousedown', function (e) {
+            if (!e.target.closest('.draggable-image') &&
+                !e.target.closest('.controls') &&
+                !e.target.closest('.page-actions')) {
+                document.querySelectorAll('.draggable-image').forEach(el => el.classList.remove('active'));
+            }
+        });
+
+        // =====================================================
+        // DRAG LOGIC (draggable images)
+        // =====================================================
+        function makeDraggable(element, boundary) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            element.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                if (e.target.className.includes('resizer') || e.target.className === 'remove-btn') return;
+                e.preventDefault();
+
+                document.querySelectorAll('.draggable-image').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
+                element.style.zIndex = zIndexCounter++;
+
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+
+                let newTop = element.offsetTop - pos2;
+                let newLeft = element.offsetLeft - pos1;
+
+                // Alignment Snapping
+                const threshold = 5;
+                const { guideV, guideH, tooltip } = getOrCreateGuides(boundary);
+                guideV.style.display = 'none';
+                guideH.style.display = 'none';
+                tooltip.style.display = 'none';
+
+                const others = Array.from(boundary.querySelectorAll('.draggable-image')).filter(el => el !== element);
+
+                for (let other of others) {
+                    const oL = other.offsetLeft, oT = other.offsetTop;
+                    const oR = oL + other.offsetWidth, oB = oT + other.offsetHeight;
+
+                    if (Math.abs(newLeft - oL) < threshold) {
+                        newLeft = oL;
+                        guideV.style.display = 'block';
+                        guideV.style.left = newLeft + 'px';
+                    } else if (Math.abs(newLeft - oR) < threshold) {
+                        newLeft = oR;
+                        guideV.style.display = 'block';
+                        guideV.style.left = newLeft + 'px';
+                    }
+
+                    if (Math.abs(newTop - oT) < threshold) {
+                        newTop = oT;
+                        guideH.style.display = 'block';
+                        guideH.style.top = newTop + 'px';
+                    } else if (Math.abs(newTop - oB) < threshold) {
+                        newTop = oB;
+                        guideH.style.display = 'block';
+                        guideH.style.top = newTop + 'px';
+                    }
+                }
+
+                element.style.top = newTop + "px";
+                element.style.left = newLeft + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+                const { guideV, guideH, tooltip } = getOrCreateGuides(boundary);
+                guideV.style.display = 'none';
+                guideH.style.display = 'none';
+                tooltip.style.display = 'none';
+            }
+        }
+
+        // =====================================================
+        // RESIZE LOGIC (draggable images)
+        // =====================================================
+        function makeResizable(element, img, resizerSE, resizerE, resizerS) {
+            let originalWidth = 0, originalHeight = 0;
+            let originalMouseX = 0, originalMouseY = 0;
+            let resizeType = '';
+
+            function initResize(e, type) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                element.classList.add('active');
+                originalWidth = parseFloat(getComputedStyle(img, null).getPropertyValue('width').replace('px', ''));
+                originalHeight = parseFloat(getComputedStyle(img, null).getPropertyValue('height').replace('px', ''));
+                originalMouseX = e.pageX;
+                originalMouseY = e.pageY;
+                resizeType = type;
+
+                img.style.width = originalWidth + 'px';
+                img.style.height = originalHeight + 'px';
+
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            }
+
+            if (resizerSE) resizerSE.addEventListener('mousedown', function (e) { initResize(e, 'se'); });
+            if (resizerE) resizerE.addEventListener('mousedown', function (e) { initResize(e, 'e'); });
+            if (resizerS) resizerS.addEventListener('mousedown', function (e) { initResize(e, 's'); });
+
+            function resize(e) {
+                const boundary = element.closest('.certificate-border');
+                const others = Array.from(boundary.querySelectorAll('.draggable-image')).filter(el => el !== element);
+                const { tooltip } = getOrCreateGuides(boundary);
+                tooltip.style.display = 'none';
+                const threshold = 5;
+
+                let width = originalWidth;
+                let height = originalHeight;
+
+                if (resizeType === 'e') {
+                    width = originalWidth + (e.pageX - originalMouseX);
+                } else if (resizeType === 's') {
+                    height = originalHeight + (e.pageY - originalMouseY);
+                } else if (resizeType === 'se') {
+                    const widthDelta = e.pageX - originalMouseX;
+                    const scale = (originalWidth + widthDelta) / originalWidth;
+                    width = originalWidth * scale;
+                    height = originalHeight * scale;
+                }
+
+                let snapped = false;
+                let snapText = '';
+
+                for (let other of others) {
+                    const otherW = parseFloat(getComputedStyle(other.querySelector('img')).width);
+                    const otherH = parseFloat(getComputedStyle(other.querySelector('img')).height);
+
+                    if ((resizeType === 'e' || resizeType === 'se') && Math.abs(width - otherW) < threshold) {
+                        width = otherW;
+                        if (resizeType === 'se') height = originalHeight * (width / originalWidth);
+                        snapped = true;
+                        snapText = 'Width Aligned';
+                    }
+                    if ((resizeType === 's' || resizeType === 'se') && Math.abs(height - otherH) < threshold) {
+                        height = otherH;
+                        if (resizeType === 'se') width = originalWidth * (height / originalHeight);
+                        snapped = true;
+                        snapText = 'Height Aligned';
+                    }
+                }
+
+                if (width > 20 && height > 20) {
+                    img.style.width = width + 'px';
+                    img.style.height = height + 'px';
+                }
+
+                if (snapped) {
+                    tooltip.style.display = 'block';
+                    tooltip.innerHTML = snapText;
+                    tooltip.style.top = (element.offsetTop - 25) + 'px';
+                    tooltip.style.left = element.offsetLeft + 'px';
+                    element.style.borderColor = '#3498db';
+                } else {
+                    element.style.borderColor = '';
+                }
+            }
+
+            function stopResize() {
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+                const boundary = element.closest('.certificate-border');
+                const { tooltip } = getOrCreateGuides(boundary);
+                tooltip.style.display = 'none';
+                element.style.borderColor = '';
+            }
+        }
+
+        // =====================================================
+        // SAVE PROJECT
+        // =====================================================
+        function saveProject() {
+            const pagesContainer = document.getElementById('pages-container');
+            // Remove active selection markers before saving
+            document.querySelectorAll('.draggable-image').forEach(el => el.classList.remove('active'));
+
+            const orientation = document.getElementById('orientationSelect').value;
+
+            const projectData = {
+                pagesHTML: pagesContainer.innerHTML,
+                orientation: orientation
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+
+            // Use Certificate No as filename if available
+            let fileName = "certificate_project";
+            const thElements = document.querySelectorAll('.details-table th');
+            for (let th of thElements) {
+                const text = th.textContent || "";
+                if (text.toLowerCase().includes('certificate') && text.toLowerCase().includes('no')) {
+                    const td = th.nextElementSibling;
+                    if (td && td.tagName.toLowerCase() === 'td') {
+                        let certVal = (td.textContent || "").trim();
+                        certVal = certVal.replace(/[\/\\?%*:|"<>]/g, '-');
+                        if (certVal) fileName = certVal;
+                    }
+                    break;
+                }
+            }
+
+            a.setAttribute("download", fileName + ".json");
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        // =====================================================
+        // LOAD PROJECT
+        // =====================================================
+        function loadProject(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const projectData = JSON.parse(e.target.result);
+                        if (projectData && projectData.pagesHTML) {
+                            document.getElementById('pages-container').innerHTML = projectData.pagesHTML;
+
+                            if (projectData.orientation) {
+                                document.getElementById('orientationSelect').value = projectData.orientation;
+                                changeOrientation();
+                            }
+
+                            // Re-initialize draggable images
+                            document.querySelectorAll('.draggable-image').forEach(cont => {
+                                const img = cont.querySelector('img');
+
+                                // Upgrade old project format
+                                if (cont.querySelector('.resizer')) {
+                                    cont.querySelector('.resizer').className = 'resizer-se';
+                                }
+
+                                let rSE = cont.querySelector('.resizer-se');
+                                let rE = cont.querySelector('.resizer-e');
+                                let rS = cont.querySelector('.resizer-s');
+
+                                if (!rE) {
+                                    rE = document.createElement('div');
+                                    rE.className = 'resizer-e';
+                                    cont.appendChild(rE);
+                                }
+                                if (!rS) {
+                                    rS = document.createElement('div');
+                                    rS.className = 'resizer-s';
+                                    cont.appendChild(rS);
+                                }
+
+                                const bc = cont.closest('.certificate-border');
+                                makeDraggable(cont, bc);
+                                makeResizable(cont, img, rSE, rE, rS);
+                            });
+
+                            // Re-initialize image grid cells
+                            document.querySelectorAll('.grid-cell').forEach(cell => {
+                                // Re-attach file input listener (JS handlers not saved in HTML)
+                                let fi = cell.querySelector('input[type="file"]');
+                                if (!fi) {
+                                    fi = document.createElement('input');
+                                    fi.type = 'file';
+                                    fi.accept = 'image/*';
+                                    fi.style.display = 'none';
+                                    cell.appendChild(fi);
+                                }
+                                fi.addEventListener('change', function () {
+                                    if (fi.files && fi.files[0]) {
+                                        const r = new FileReader();
+                                        r.onload = function (ev) { setCellImage(cell, ev.target.result); };
+                                        r.readAsDataURL(fi.files[0]);
+                                    }
+                                    fi.value = '';
+                                });
+
+                                // Attach cell-level click/dblclick/paste handlers
+                                initGridCell(cell);
+
+                                // Re-attach Canva drag/resize to any saved cell-img-wrap
+                                const wrap = cell.querySelector('.cell-img-wrap');
+                                if (wrap) {
+                                    wrap._wrapInitialized = false; // allow re-init
+                                    cell.classList.add('has-image');
+                                    initCellWrap(cell, wrap);
+                                } else {
+                                    cell.classList.remove('has-image');
+                                    cell.style.cursor = 'pointer';
+                                }
+                            });
+
+                            // Re-initialize simple text areas
+                            document.querySelectorAll('.simple-text-area').forEach(area => {
+                                initTextArea(area);
+                                // Restore has-content class
+                                const isEmpty = !area.innerHTML.trim() || area.innerHTML.trim() === '<br>';
+                                area.classList.toggle('has-content', !isEmpty);
+                            });
+
+                            alert("Project loaded successfully!");
+                        } else {
+                            alert("Invalid project file.");
+                        }
+                    } catch (err) {
+                        alert("Error loading project file.");
+                    }
+                };
+                reader.readAsText(input.files[0]);
+            }
+            input.value = '';
+        }
+
+        // =====================================================
+        // ORIENTATION
+        // =====================================================
+        function changeOrientation() {
+            const orientation = document.getElementById('orientationSelect').value;
+            const styleId = 'print-orientation-style';
+            let styleEl = document.getElementById(styleId);
+
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = styleId;
+                document.head.appendChild(styleEl);
+            }
+
+            if (orientation === 'landscape') {
+                document.body.classList.add('landscape-mode');
+                styleEl.innerHTML = `@page { size: A4 landscape !important; margin: 0; }`;
+            } else {
+                document.body.classList.remove('landscape-mode');
+                styleEl.innerHTML = `@page { size: A4 portrait !important; margin: 0; }`;
+            }
+        }
+
+        // =====================================================
+        // IMAGE BORDER SLIDER
+        // =====================================================
+        function updateImageBorder(value) {
+            document.documentElement.style.setProperty('--image-border-width', value + 'px');
+            document.getElementById('borderWidthDisplay').innerText = value + 'px';
+        }
+
+        // =====================================================
+        // TABLE COLUMN RESIZING (Google Docs Style)
+        // =====================================================
+        function setupTableResizing() {
+            let isResizing = false;
+            let currentCell = null;
+            let startX = 0;
+            let startWidth = 0;
+            let currentTable = null;
+
+            document.addEventListener('mousemove', function(e) {
+                if (isResizing) return;
+                const target = e.target;
+                if ((target.tagName === 'TH' || target.tagName === 'TD') && target.closest('.simple-text-area')) {
+                    const rect = target.getBoundingClientRect();
+                    if (e.clientX > rect.right - 6) {
+                        target.style.cursor = 'col-resize';
+                    } else {
+                        target.style.cursor = 'text';
+                    }
+                }
+            });
+
+            document.addEventListener('mousedown', function(e) {
+                const target = e.target;
+                if ((target.tagName === 'TH' || target.tagName === 'TD') && target.closest('.simple-text-area')) {
+                    const rect = target.getBoundingClientRect();
+                    if (e.clientX > rect.right - 6) {
+                        e.preventDefault();
+                        isResizing = true;
+                        currentCell = target;
+                        startX = e.clientX;
+                        startWidth = currentCell.offsetWidth;
+                        currentTable = currentCell.closest('table');
+                        
+                        // Force fixed layout for predictable resizing
+                        if (currentTable && currentTable.style.tableLayout !== 'fixed') {
+                            const firstRow = currentTable.rows[0];
+                            if (firstRow) {
+                                let computedWidths = [];
+                                for (let i = 0; i < firstRow.cells.length; i++) {
+                                    computedWidths.push(firstRow.cells[i].offsetWidth);
+                                }
+                                for (let i = 0; i < firstRow.cells.length; i++) {
+                                    firstRow.cells[i].style.width = computedWidths[i] + 'px';
+                                    firstRow.cells[i].style.minWidth = '0px';
+                                }
+                                currentTable.style.tableLayout = 'fixed';
+                                currentTable.style.width = currentTable.offsetWidth + 'px';
+                            }
+                        }
+                        
+                        // If cell doesn't have an explicit inline width, set it based on offsetWidth
+                        if (!currentCell.style.width) {
+                             currentCell.style.width = currentCell.offsetWidth + 'px';
+                        }
+                    }
+                }
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isResizing || !currentCell) return;
+                const dx = e.clientX - startX;
+                const newWidth = Math.max(25, startWidth + dx);
+                currentCell.style.width = newWidth + 'px';
+                
+                // Expand table width if necessary
+                if (currentTable) {
+                   currentTable.style.width = 'auto'; // Let it organically flex or we can explicitly manage it
+                }
+            });
+
+            document.addEventListener('mouseup', function(e) {
+                if (isResizing) {
+                    isResizing = false;
+                    if (currentCell) currentCell.style.cursor = 'text';
+                    currentCell = null;
+                    currentTable = null;
+                }
+            });
+        }
+        
+        setupTableResizing();
+    </script>
+</body>
+
+</html>
