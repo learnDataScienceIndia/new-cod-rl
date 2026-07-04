@@ -1197,7 +1197,7 @@
                     <!-- Left: Logo -->
                     <div style="display: flex; align-items: center;">
                         <img src="https://github.com/learnDataScienceIndia/signature/blob/0fa070974f7c06bd9b8e544b431c8d56c19c57af/t%20logo.png?raw=true"
-                            alt="Reloop Recycling"
+                            alt="Reloop Recycling FZE"
                             style="width: 120px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
                     </div>
 
@@ -1254,7 +1254,7 @@
                                     <div class="remove-row-btn" onclick="this.closest('tr').remove()">×</div>Date
                                     Received:
                                 </th>
-                                <td contenteditable="true" class="divider-left">27 April 2026</td>
+                                <td id="date-received" contenteditable="true" class="divider-left">27 April 2026</td>
                                 <th contenteditable="true">Weight:</th>
                                 <td contenteditable="true">102.5 kgs</td>
                             </tr>
@@ -1263,7 +1263,7 @@
                                     <div class="remove-row-btn" onclick="this.closest('tr').remove()">×</div>Job
                                     Completed On:
                                 </th>
-                                <td contenteditable="true" class="divider-left">30 April 2026</td>
+                                <td id="job-completed" contenteditable="true" class="divider-left">30 April 2026</td>
                                 <th contenteditable="true">Total Received:</th>
                                 <td contenteditable="true">Lot</td>
                             </tr>
@@ -1272,7 +1272,7 @@
                                     <div class="remove-row-btn" onclick="this.closest('tr').remove()">×</div>Certificate
                                     No:
                                 </th>
-                                <td contenteditable="true" class="divider-left">RRF-004/Apr/2026</td>
+                                <td id="cert-no" contenteditable="true" class="divider-left">RRF-004/Apr/2026</td>
                                 <th contenteditable="true">Remarks:</th>
                                 <td contenteditable="true">100% Recycled and 0 landfill</td>
                             </tr>
@@ -1290,7 +1290,7 @@
                 <!-- Paragraphs -->
                 <div class="content-text">
                     <p contenteditable="true">
-                        These items were received by Reloop Recycling. We apply a <span
+                        These items were received by Reloop Recycling FZE. We apply a <span
                             class="highlight-red">manual</span> dismantling process at JAFZA site in order to assure the
                         maximum volume of secondary raw materials. These raw materials are recovered while minimizing
                         negative effects on the environment. Every effort has been made to ensure the recycling of these
@@ -1303,7 +1303,7 @@
                         equipment. The factories we work with all fall under these guidelines.
                     </p>
                     <p class="certify-statement" contenteditable="true">
-                        Reloop Recycling certifies that the recycling of these materials has not caused harm to the
+                        Reloop Recycling FZE certifies that the recycling of these materials has not caused harm to the
                         health or the environment, either within or outside the United Arab Emirates.
                     </p>
                 </div>
@@ -2400,6 +2400,32 @@
         }
         
         setupTableResizing();
+
+        // Auto-fetch current date for certificate
+        (function() {
+            const dateReceivedEl = document.getElementById('date-received');
+            const jobCompletedEl = document.getElementById('job-completed');
+            const certNoEl = document.getElementById('cert-no');
+            
+            if (dateReceivedEl && jobCompletedEl && certNoEl) {
+                const today = new Date();
+                
+                // Format day, month (long), year
+                const optionsNum = { day: 'numeric', month: 'long', year: 'numeric' }; 
+                const formattedDate = today.toLocaleDateString('en-GB', optionsNum);
+                
+                // Format short month for certificate number
+                let monthShort = today.toLocaleString('en-US', { month: 'short' });
+                // Ensure first letter is capitalized just in case
+                monthShort = monthShort.charAt(0).toUpperCase() + monthShort.slice(1);
+                
+                const year = today.getFullYear();
+                
+                dateReceivedEl.innerText = formattedDate;
+                jobCompletedEl.innerText = formattedDate;
+                certNoEl.innerText = `RRF-004/${monthShort}/${year}`;
+            }
+        })();
     </script>
 </body>
 
