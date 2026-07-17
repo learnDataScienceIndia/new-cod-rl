@@ -237,7 +237,11 @@
 
         .logo-center img {
             width: 100px;
-            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            filter: contrast(1.15) saturate(1.1);
         }
 
         .company-name-tag {
@@ -1198,7 +1202,7 @@
                     <div style="display: flex; align-items: center;">
                         <img src="https://github.com/learnDataScienceIndia/signature/blob/0fa070974f7c06bd9b8e544b431c8d56c19c57af/t%20logo.png?raw=true"
                             alt="Reloop Recycling FZE"
-                            style="width: 120px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+                            style="width: 120px; image-rendering: -webkit-optimize-contrast; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; image-rendering: pixelated; filter: contrast(1.15) saturate(1.1);">
                     </div>
 
                     <!-- Right: Company Name & Contact Info -->
