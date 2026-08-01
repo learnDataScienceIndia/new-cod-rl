@@ -688,27 +688,35 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(3, 1fr);
-            gap: 6px;
+            gap: 0;
             flex-grow: 1;
             width: 100%;
             min-height: 0;
-            background: rgba(255, 140, 0, 0.14);
-            /* light orange gap fill */
+            background: transparent;
             border-radius: 4px;
-            padding: 6px;
+            padding: 3px;
             box-sizing: border-box;
         }
 
         .grid-cell {
             position: relative;
-            border: 1px solid rgba(255, 140, 0, 0.25);
+            border: 4px solid transparent;
             border-radius: 3px;
             overflow: hidden;
             background: #ffffff;
-            /* White background for the cell inner */
             cursor: pointer;
             user-select: none;
             min-height: 0;
+            background-clip: padding-box;
+        }
+
+        .grid-cell.has-image {
+            border: 4px solid rgba(255, 140, 0, 0.14);
+            box-shadow: inset 0 0 0 1px rgba(255, 140, 0, 0.25);
+        }
+
+        .grid-cell:not(.has-image) {
+            display: none !important;
         }
 
         /* Canva-style draggable/resizable image wrapper */
@@ -902,10 +910,6 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
                 color-adjust: exact !important;
-            }
-
-            .grid-cell:not(.has-image) {
-                display: none !important;
             }
 
             .cell-handle,
@@ -1118,7 +1122,6 @@
             }
 
             .grid-cell {
-                border: 1px solid #DDEFD9 !important;
                 overflow: hidden;
             }
         }
@@ -1540,7 +1543,6 @@
             const newPage = document.createElement('div');
             newPage.className = 'page';
             newPage.innerHTML = `
-                <img src="https://github.com/learnDataScienceIndia/signature/blob/0fa070974f7c06bd9b8e544b431c8d56c19c57af/t%20logo.png?raw=true" class="watermark" alt="">
                 <div class="page-actions">
                     <button class="page-action-btn page-move-btn" onclick="movePage(this.closest('.page'), 'up')" title="Move Up">
                         <i class="fa-solid fa-chevron-up"></i>
@@ -1550,6 +1552,9 @@
                     </button>
                     <button class="page-action-btn delete" onclick="this.closest('.page').remove()">
                         <i class="fa-solid fa-trash"></i>
+                    </button>
+                    <button class="page-action-btn add-grid-btn" onclick="addGridImageToPage(this)">
+                        <i class="fa-solid fa-image"></i> Add Image
                     </button>
                 </div>
                 <div class="certificate-border evidence-border">
@@ -1567,6 +1572,23 @@
             createImageGrid(gridEl);
 
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        /**
+         * Add an image to the next available empty cell in the grid.
+         */
+        function addGridImageToPage(btn) {
+            const page = btn.closest('.page');
+            if (!page) return;
+            const grid = page.querySelector('.evidence-grid');
+            if (!grid) return;
+            const emptyCell = grid.querySelector('.grid-cell:not(.has-image)');
+            if (emptyCell) {
+                const fi = emptyCell.querySelector('input[type="file"]');
+                if (fi) fi.click();
+            } else {
+                alert("This grid is full (maximum 9 images). Please add a new Evidence Page.");
+            }
         }
 
         /**
@@ -2205,6 +2227,26 @@
                                 changeOrientation();
                             }
 
+                            // Remove watermark and add 'Add Image' button to Evidence Pages in older projects
+                            document.querySelectorAll('.page').forEach(page => {
+                                if (page.querySelector('.evidence-grid')) {
+                                    // Remove watermark from evidence page
+                                    const wm = page.querySelector('.watermark');
+                                    if (wm) wm.remove();
+                                    
+                                    if (!page.querySelector('.add-grid-btn')) {
+                                        const actions = page.querySelector('.page-actions');
+                                        if (actions) {
+                                            const btn = document.createElement('button');
+                                            btn.className = 'page-action-btn add-grid-btn';
+                                            btn.innerHTML = '<i class="fa-solid fa-image"></i> Add Image';
+                                            btn.onclick = function() { addGridImageToPage(this); };
+                                            actions.appendChild(btn);
+                                        }
+                                    }
+                                }
+                            });
+
                             // Re-initialize draggable images
                             document.querySelectorAll('.draggable-image').forEach(cont => {
                                 const img = cont.querySelector('img');
@@ -2331,7 +2373,7 @@
             let startWidth = 0;
             let currentTable = null;
 
-            document.addEventListener('mousemove', function(e) {
+            document.addEventListener('mousemove', function (e) {
                 if (isResizing) return;
                 const target = e.target;
                 if ((target.tagName === 'TH' || target.tagName === 'TD') && target.closest('.simple-text-area')) {
@@ -2344,7 +2386,7 @@
                 }
             });
 
-            document.addEventListener('mousedown', function(e) {
+            document.addEventListener('mousedown', function (e) {
                 const target = e.target;
                 if ((target.tagName === 'TH' || target.tagName === 'TD') && target.closest('.simple-text-area')) {
                     const rect = target.getBoundingClientRect();
@@ -2355,7 +2397,7 @@
                         startX = e.clientX;
                         startWidth = currentCell.offsetWidth;
                         currentTable = currentCell.closest('table');
-                        
+
                         // Force fixed layout for predictable resizing
                         if (currentTable && currentTable.style.tableLayout !== 'fixed') {
                             const firstRow = currentTable.rows[0];
@@ -2372,28 +2414,28 @@
                                 currentTable.style.width = currentTable.offsetWidth + 'px';
                             }
                         }
-                        
+
                         // If cell doesn't have an explicit inline width, set it based on offsetWidth
                         if (!currentCell.style.width) {
-                             currentCell.style.width = currentCell.offsetWidth + 'px';
+                            currentCell.style.width = currentCell.offsetWidth + 'px';
                         }
                     }
                 }
             });
 
-            document.addEventListener('mousemove', function(e) {
+            document.addEventListener('mousemove', function (e) {
                 if (!isResizing || !currentCell) return;
                 const dx = e.clientX - startX;
                 const newWidth = Math.max(25, startWidth + dx);
                 currentCell.style.width = newWidth + 'px';
-                
+
                 // Expand table width if necessary
                 if (currentTable) {
-                   currentTable.style.width = 'auto'; // Let it organically flex or we can explicitly manage it
+                    currentTable.style.width = 'auto'; // Let it organically flex or we can explicitly manage it
                 }
             });
 
-            document.addEventListener('mouseup', function(e) {
+            document.addEventListener('mouseup', function (e) {
                 if (isResizing) {
                     isResizing = false;
                     if (currentCell) currentCell.style.cursor = 'text';
@@ -2402,29 +2444,29 @@
                 }
             });
         }
-        
+
         setupTableResizing();
 
         // Auto-fetch current date for certificate
-        (function() {
+        (function () {
             const dateReceivedEl = document.getElementById('date-received');
             const jobCompletedEl = document.getElementById('job-completed');
             const certNoEl = document.getElementById('cert-no');
-            
+
             if (dateReceivedEl && jobCompletedEl && certNoEl) {
                 const today = new Date();
-                
+
                 // Format day, month (long), year
-                const optionsNum = { day: 'numeric', month: 'long', year: 'numeric' }; 
+                const optionsNum = { day: 'numeric', month: 'long', year: 'numeric' };
                 const formattedDate = today.toLocaleDateString('en-GB', optionsNum);
-                
+
                 // Format short month for certificate number
                 let monthShort = today.toLocaleString('en-US', { month: 'short' });
                 // Ensure first letter is capitalized just in case
                 monthShort = monthShort.charAt(0).toUpperCase() + monthShort.slice(1);
-                
+
                 const year = today.getFullYear();
-                
+
                 dateReceivedEl.innerText = formattedDate;
                 jobCompletedEl.innerText = formattedDate;
                 certNoEl.innerText = `RRF-004/${monthShort}/${year}`;
