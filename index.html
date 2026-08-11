@@ -1125,6 +1125,81 @@
                 overflow: hidden;
             }
         }
+        /* --- Rich Text Editing Styles --- */
+        .floating-toolbar {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 5px;
+            display: none;
+            gap: 5px;
+            z-index: 9999;
+            align-items: center;
+        }
+        .floating-toolbar.active {
+            display: flex;
+        }
+        .floating-toolbar button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .floating-toolbar button:hover {
+            background-color: #f0f0f0;
+        }
+        .table-drag-handle {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            color: #5f6368;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: move;
+            border-radius: 4px;
+            z-index: 9998;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            user-select: none;
+        }
+        .table-drag-handle.active {
+            display: flex;
+        }
+        .table-resize-handle {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background-color: #1a73e8;
+            border: 1px solid white;
+            right: -7px;
+            bottom: -7px;
+            cursor: nwse-resize;
+            border-radius: 50%;
+            z-index: 9998;
+            display: none;
+        }
+        .table-resize-handle.active {
+            display: block;
+        }
+        table.selected-table {
+            outline: 2px solid #1a73e8 !important;
+            outline-offset: -1px;
+        }
+        @media print {
+            .floating-toolbar, .table-drag-handle, .table-resize-handle { display: none !important; }
+            table.selected-table { outline: none !important; }
+        }
     </style>
 </head>
 
@@ -1366,6 +1441,32 @@
 
     </div>
 
+    <!-- Rich Text & Table Toolbars -->
+    <div id="textToolbar" class="floating-toolbar">
+        <button onclick="document.execCommand('bold', false, null)" title="Bold"><i class="fa-solid fa-bold"></i></button>
+        <button onclick="document.execCommand('italic', false, null)" title="Italic"><i class="fa-solid fa-italic"></i></button>
+        <button onclick="document.execCommand('underline', false, null)" title="Underline"><i class="fa-solid fa-underline"></i></button>
+        <button onclick="document.execCommand('insertUnorderedList', false, null)" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
+        <button onclick="document.execCommand('insertOrderedList', false, null)" title="Number List"><i class="fa-solid fa-list-ol"></i></button>
+        <button onclick="document.execCommand('justifyLeft', false, null)" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
+        <button onclick="document.execCommand('justifyCenter', false, null)" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
+    </div>
+
+    <div id="tableToolbar" class="floating-toolbar">
+        <button onclick="window.tableAction('addRowAbove')" title="Add Row Above"><i class="fa-solid fa-arrow-up"></i></button>
+        <button onclick="window.tableAction('addRowBelow')" title="Add Row Below"><i class="fa-solid fa-arrow-down"></i></button>
+        <button onclick="window.tableAction('addColLeft')" title="Add Col Left"><i class="fa-solid fa-arrow-left"></i></button>
+        <button onclick="window.tableAction('addColRight')" title="Add Col Right"><i class="fa-solid fa-arrow-right"></i></button>
+        <button onclick="window.tableAction('deleteRow')" title="Delete Row" style="color:#d32f2f;"><i class="fa-solid fa-minus"></i> Row</button>
+        <button onclick="window.tableAction('deleteCol')" title="Delete Col" style="color:#d32f2f;"><i class="fa-solid fa-minus"></i> Col</button>
+        <button onclick="window.tableAction('deleteTable')" title="Delete Table" style="color:#d32f2f;"><i class="fa-solid fa-trash"></i></button>
+        <div style="width:1px;height:16px;background:#ddd;margin:0 4px;"></div>
+        <button onclick="window.tableAction('toggleBorder')" title="Toggle Borders"><i class="fa-solid fa-border-all"></i></button>
+    </div>
+
+    <div id="tableDragHandle" class="table-drag-handle" title="Drag to move table"><i class="fa-solid fa-arrows-up-down-left-right"></i></div>
+    <div id="tableResizeHandle" class="table-resize-handle" title="Drag to resize table"></div>
+
     <script>
         // =====================================================
         // CANVA-STYLE CELL IMAGE DRAG + RESIZE
@@ -1502,9 +1603,9 @@
 
             const newPage = document.createElement('div');
             newPage.className = 'page';
+            newPage.style.padding = '0';
             newPage.innerHTML = `
-                <img src="https://github.com/learnDataScienceIndia/signature/blob/0fa070974f7c06bd9b8e544b431c8d56c19c57af/t%20logo.png?raw=true" class="watermark" alt="">
-                <div class="page-actions">
+                <div class="page-actions" style="top: 10px; right: 10px;">
                     <button class="page-action-btn page-move-btn" onclick="movePage(this.closest('.page'), 'up')" title="Move Up">
                         <i class="fa-solid fa-chevron-up"></i>
                     </button>
@@ -1515,11 +1616,11 @@
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
-                <div class="blank-content-wrap">
-                    <div class="simple-text-area" contenteditable="true"
-                         data-placeholder="Click here to start typing, or paste any format (Ctrl+V)..."
-                         spellcheck="false"></div>
-                    <div class="footer-accreditations" style="margin-top: auto;">
+                <div class="blank-content-wrap" style="padding: 20mm; border: none; background: white;">
+                    <div class="simple-text-area rich-content-area" contenteditable="true"
+                         data-placeholder="Click here to start typing, or paste an Excel table (Ctrl+V)..."
+                         spellcheck="false" style="outline: none;"></div>
+                    <div class="footer-accreditations" style="margin-top: auto; border-top: 1px solid #ccc;">
                         ${footerHTML}
                     </div>
                 </div>
@@ -1528,6 +1629,8 @@
 
             const textArea = newPage.querySelector('.simple-text-area');
             initTextArea(textArea);
+            
+            setTimeout(() => { if(window.setupTablesInContainer) window.setupTablesInContainer(textArea); }, 100);
 
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
@@ -1792,14 +1895,55 @@
             if (!cd) return;
             const types = cd.types ? Array.from(cd.types) : [];
 
-            // 1. Prioritize HTML. If the clipboard has HTML (like from Excel or Google Docs),
-            // let the browser handle it natively. This prevents Excel tables from pasting as images
-            // and perfectly preserves all formatting.
             if (types.indexOf('text/html') !== -1) {
-                return; // Native browser handling does exactly what Google Docs does
+                e.preventDefault();
+                let html = cd.getData('text/html');
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const tables = doc.querySelectorAll('table');
+                tables.forEach(table => {
+                    table.removeAttribute('style');
+                    table.removeAttribute('class');
+                    table.removeAttribute('bgcolor');
+                    table.style.borderCollapse = 'collapse';
+                    table.style.width = '100%';
+                    table.style.margin = '10px 0';
+                    table.style.tableLayout = 'fixed';
+                    table.style.position = 'relative'; 
+                    
+                    const cells = table.querySelectorAll('td, th');
+                    cells.forEach(cell => {
+                        cell.removeAttribute('style');
+                        cell.removeAttribute('class');
+                        cell.removeAttribute('bgcolor');
+                        cell.style.border = '1px solid #ccc';
+                        cell.style.padding = '8px';
+                        cell.style.verticalAlign = 'top';
+                        cell.style.backgroundColor = 'white';
+                        cell.style.color = '#000';
+                        cell.style.minWidth = '30px';
+                        
+                        const ps = cell.querySelectorAll('*');
+                        ps.forEach(p => {
+                            p.removeAttribute('style');
+                            p.removeAttribute('class');
+                            p.removeAttribute('color');
+                            p.removeAttribute('face');
+                            p.removeAttribute('bgcolor');
+                        });
+                    });
+                });
+                
+                const cleanHTML = doc.body.innerHTML;
+                document.execCommand('insertHTML', false, cleanHTML);
+                container.classList.add('has-content');
+                
+                setTimeout(() => { if(window.setupTablesInContainer) window.setupTablesInContainer(container); }, 50);
+                return;
             }
 
-            // 2. If it's ONLY an image (like a screenshot), handle the image paste
             for (let i = 0; i < cd.items.length; i++) {
                 if (cd.items[i].type.indexOf('image') !== -1) {
                     e.preventDefault();
@@ -1817,8 +1961,6 @@
                     return;
                 }
             }
-
-            // 3. Plain text falls through to native browser handling
         }
 
         /**
@@ -2372,6 +2514,9 @@
             let startX = 0;
             let startWidth = 0;
             let currentTable = null;
+            let resizeType = 'col'; 
+            let startY = 0;
+            let startHeight = 0;
 
             document.addEventListener('mousemove', function (e) {
                 if (isResizing) return;
@@ -2380,6 +2525,10 @@
                     const rect = target.getBoundingClientRect();
                     if (e.clientX > rect.right - 6) {
                         target.style.cursor = 'col-resize';
+                        resizeType = 'col';
+                    } else if (e.clientY > rect.bottom - 6) {
+                        target.style.cursor = 'row-resize';
+                        resizeType = 'row';
                     } else {
                         target.style.cursor = 'text';
                     }
@@ -2393,19 +2542,16 @@
                     if (e.clientX > rect.right - 6) {
                         e.preventDefault();
                         isResizing = true;
+                        resizeType = 'col';
                         currentCell = target;
                         startX = e.clientX;
                         startWidth = currentCell.offsetWidth;
                         currentTable = currentCell.closest('table');
-
-                        // Force fixed layout for predictable resizing
                         if (currentTable && currentTable.style.tableLayout !== 'fixed') {
                             const firstRow = currentTable.rows[0];
                             if (firstRow) {
                                 let computedWidths = [];
-                                for (let i = 0; i < firstRow.cells.length; i++) {
-                                    computedWidths.push(firstRow.cells[i].offsetWidth);
-                                }
+                                for (let i = 0; i < firstRow.cells.length; i++) computedWidths.push(firstRow.cells[i].offsetWidth);
                                 for (let i = 0; i < firstRow.cells.length; i++) {
                                     firstRow.cells[i].style.width = computedWidths[i] + 'px';
                                     firstRow.cells[i].style.minWidth = '0px';
@@ -2414,24 +2560,34 @@
                                 currentTable.style.width = currentTable.offsetWidth + 'px';
                             }
                         }
-
-                        // If cell doesn't have an explicit inline width, set it based on offsetWidth
                         if (!currentCell.style.width) {
                             currentCell.style.width = currentCell.offsetWidth + 'px';
                         }
+                    } else if (e.clientY > rect.bottom - 6) {
+                        e.preventDefault();
+                        isResizing = true;
+                        resizeType = 'row';
+                        currentCell = target;
+                        startY = e.clientY;
+                        startHeight = currentCell.offsetHeight;
+                        currentTable = currentCell.closest('table');
                     }
                 }
             });
 
             document.addEventListener('mousemove', function (e) {
                 if (!isResizing || !currentCell) return;
-                const dx = e.clientX - startX;
-                const newWidth = Math.max(25, startWidth + dx);
-                currentCell.style.width = newWidth + 'px';
-
-                // Expand table width if necessary
-                if (currentTable) {
-                    currentTable.style.width = 'auto'; // Let it organically flex or we can explicitly manage it
+                if (resizeType === 'col') {
+                    const dx = e.clientX - startX;
+                    const newWidth = Math.max(25, startWidth + dx);
+                    currentCell.style.width = newWidth + 'px';
+                } else if (resizeType === 'row') {
+                    const dy = e.clientY - startY;
+                    const newHeight = Math.max(20, startHeight + dy);
+                    currentCell.style.height = newHeight + 'px';
+                }
+                if (window.updateTableHandles) {
+                    window.updateTableHandles(currentTable);
                 }
             });
 
@@ -2446,6 +2602,196 @@
         }
 
         setupTableResizing();
+        
+        // =====================================================
+        // RICH TEXT AND TABLE LOGIC
+        // =====================================================
+        let activeTable = null;
+        let activeCell = null;
+        const textToolbar = document.getElementById('textToolbar');
+        const tableToolbar = document.getElementById('tableToolbar');
+        const dragHandle = document.getElementById('tableDragHandle');
+        const resizeHandle = document.getElementById('tableResizeHandle');
+
+        document.addEventListener('selectionchange', () => {
+            const sel = window.getSelection();
+            if (!sel.isCollapsed && sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                let inEditor = false;
+                let parent = range.commonAncestorContainer;
+                while(parent) {
+                    if (parent.classList && parent.classList.contains('simple-text-area')) {
+                        inEditor = true;
+                        break;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                if (inEditor && textToolbar) {
+                    textToolbar.classList.add('active');
+                    textToolbar.style.top = (window.scrollY + rect.top - 45) + 'px';
+                    textToolbar.style.left = (window.scrollX + rect.left + rect.width / 2 - textToolbar.offsetWidth / 2) + 'px';
+                }
+            } else {
+                if(textToolbar) textToolbar.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.closest('#tableToolbar') || e.target.closest('#tableDragHandle') || e.target.closest('#tableResizeHandle')) return;
+            if (e.target.closest('#textToolbar')) return;
+            
+            const cell = e.target.closest('td, th');
+            if (cell && cell.closest('.simple-text-area')) {
+                const table = cell.closest('table');
+                
+                document.querySelectorAll('table.selected-table').forEach(t => t.classList.remove('selected-table'));
+                table.classList.add('selected-table');
+                activeTable = table;
+                activeCell = cell;
+                
+                window.updateTableHandles(table);
+            } else {
+                if (activeTable) {
+                    activeTable.classList.remove('selected-table');
+                    activeTable = null;
+                    activeCell = null;
+                    if(tableToolbar) tableToolbar.classList.remove('active');
+                    if(dragHandle) dragHandle.classList.remove('active');
+                    if(resizeHandle) resizeHandle.classList.remove('active');
+                }
+            }
+        });
+
+        window.updateTableHandles = function(table) {
+            if (!tableToolbar || !dragHandle || !resizeHandle) return;
+            const rect = table.getBoundingClientRect();
+            
+            tableToolbar.classList.add('active');
+            tableToolbar.style.top = (window.scrollY + rect.top - 45) + 'px';
+            tableToolbar.style.left = (window.scrollX + rect.left) + 'px';
+            
+            dragHandle.classList.add('active');
+            dragHandle.style.top = (window.scrollY + rect.top - 12) + 'px';
+            dragHandle.style.left = (window.scrollX + rect.left - 12) + 'px';
+            
+            resizeHandle.classList.add('active');
+            resizeHandle.style.top = (window.scrollY + rect.bottom - 6) + 'px';
+            resizeHandle.style.left = (window.scrollX + rect.right - 6) + 'px';
+        };
+
+        window.tableAction = function(action) {
+            if (!activeTable || !activeCell) return;
+            
+            const tr = activeCell.closest('tr');
+            const tbody = activeTable.querySelector('tbody') || activeTable;
+            const colIndex = Array.from(tr.children).indexOf(activeCell);
+            
+            if (action === 'addRowAbove' || action === 'addRowBelow') {
+                const newRow = document.createElement('tr');
+                Array.from(tr.children).forEach(c => {
+                    const newCell = document.createElement(c.tagName);
+                    newCell.style.cssText = c.style.cssText;
+                    newCell.innerHTML = '<br>';
+                    newRow.appendChild(newCell);
+                });
+                if (action === 'addRowAbove') tbody.insertBefore(newRow, tr);
+                else tr.after(newRow);
+            } else if (action === 'addColLeft' || action === 'addColRight') {
+                Array.from(activeTable.rows).forEach(row => {
+                    const c = row.children[colIndex];
+                    if (!c) return;
+                    const newCell = document.createElement(c.tagName);
+                    newCell.style.cssText = c.style.cssText;
+                    newCell.innerHTML = '<br>';
+                    if (action === 'addColLeft') row.insertBefore(newCell, c);
+                    else c.after(newCell);
+                });
+            } else if (action === 'deleteRow') {
+                tr.remove();
+                if (activeTable.rows.length === 0) activeTable.remove();
+            } else if (action === 'deleteCol') {
+                Array.from(activeTable.rows).forEach(row => {
+                    if (row.children[colIndex]) row.children[colIndex].remove();
+                });
+                if (activeTable.rows[0] && activeTable.rows[0].children.length === 0) activeTable.remove();
+            } else if (action === 'deleteTable') {
+                activeTable.remove();
+                activeTable = null;
+            } else if (action === 'toggleBorder') {
+                const hasBorder = activeCell.style.border === 'none' || activeCell.style.border === '0px' || !activeCell.style.border;
+                Array.from(activeTable.querySelectorAll('td, th')).forEach(c => {
+                    c.style.border = hasBorder ? '1px solid #ccc' : 'none';
+                });
+            }
+            if(activeTable) window.updateTableHandles(activeTable);
+        };
+
+        let isDraggingTable = false;
+        let tableDragStartX, tableDragStartY, tableStartLeft, tableStartTop;
+        
+        if (dragHandle) {
+            dragHandle.addEventListener('mousedown', (e) => {
+                if (!activeTable) return;
+                e.preventDefault();
+                isDraggingTable = true;
+                
+                if (activeTable.style.position !== 'absolute') {
+                    const rect = activeTable.getBoundingClientRect();
+                    const parentRect = activeTable.parentElement.getBoundingClientRect();
+                    activeTable.style.position = 'absolute';
+                    activeTable.style.left = (rect.left - parentRect.left + activeTable.parentElement.scrollLeft) + 'px';
+                    activeTable.style.top = (rect.top - parentRect.top + activeTable.parentElement.scrollTop) + 'px';
+                    activeTable.style.margin = '0';
+                }
+                
+                tableDragStartX = e.clientX;
+                tableDragStartY = e.clientY;
+                tableStartLeft = parseFloat(activeTable.style.left) || 0;
+                tableStartTop = parseFloat(activeTable.style.top) || 0;
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDraggingTable && activeTable) {
+                    const dx = e.clientX - tableDragStartX;
+                    const dy = e.clientY - tableDragStartY;
+                    activeTable.style.left = (tableStartLeft + dx) + 'px';
+                    activeTable.style.top = (tableStartTop + dy) + 'px';
+                    window.updateTableHandles(activeTable);
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isDraggingTable) isDraggingTable = false;
+            });
+        }
+        
+        let isResizingWholeTable = false;
+        let tableResizeStartX, tableStartWidth;
+        
+        if (resizeHandle) {
+            resizeHandle.addEventListener('mousedown', (e) => {
+                if (!activeTable) return;
+                e.preventDefault();
+                isResizingWholeTable = true;
+                tableResizeStartX = e.clientX;
+                tableStartWidth = activeTable.offsetWidth;
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isResizingWholeTable && activeTable) {
+                    const dx = e.clientX - tableResizeStartX;
+                    activeTable.style.width = Math.max(100, tableStartWidth + dx) + 'px';
+                    window.updateTableHandles(activeTable);
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isResizingWholeTable) isResizingWholeTable = false;
+            });
+        }
 
         // Auto-fetch current date for certificate
         (function () {
